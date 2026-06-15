@@ -1,7 +1,7 @@
 {
   "permissions": {
     "deny": [
-      "Read(./models/**)",
+      "Read(./models/*/**)",
       "Read(./.venv/**)",
       "Read(./.venv-host/**)",
       "Read(./node_modules/**)",

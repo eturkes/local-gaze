@@ -110,15 +110,18 @@ reject_executable_archive "$TASK"
 EXTRACT="$HAND_DIR/extract"
 rm -rf "$EXTRACT"
 mkdir -p "$EXTRACT"
-log "unzipping palm_detection_full.tflite + hand_landmark_full.tflite"
+# The MediaPipe hand_landmarker.task bundle contains the palm/hand detector as
+# hand_detector.tflite and the 21-landmark model as hand_landmarks_detector.tflite
+# (the "full" models, renamed inside the Tasks bundle; sizes ~2.3M / ~5.5M).
+log "unzipping hand_detector.tflite + hand_landmarks_detector.tflite"
 unzip -o -j "$TASK" \
-    'palm_detection_full.tflite' 'hand_landmark_full.tflite' -d "$EXTRACT" \
+    'hand_detector.tflite' 'hand_landmarks_detector.tflite' -d "$EXTRACT" \
     || die "expected tflite members missing from $TASK"
 
-PALM_TFLITE="$EXTRACT/palm_detection_full.tflite"
-LM_TFLITE="$EXTRACT/hand_landmark_full.tflite"
-[ -f "$PALM_TFLITE" ] || die "palm_detection_full.tflite not extracted"
-[ -f "$LM_TFLITE" ] || die "hand_landmark_full.tflite not extracted"
+PALM_TFLITE="$EXTRACT/hand_detector.tflite"
+LM_TFLITE="$EXTRACT/hand_landmarks_detector.tflite"
+[ -f "$PALM_TFLITE" ] || die "hand_detector.tflite (palm) not extracted"
+[ -f "$LM_TFLITE" ] || die "hand_landmarks_detector.tflite not extracted"
 
 convert_tflite() {  # convert_tflite <src.tflite> <out_basename_without_ext>
     _src=$1; _out=$2

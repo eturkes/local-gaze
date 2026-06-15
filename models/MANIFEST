@@ -5,14 +5,14 @@
 # container cannot download/verify these; treat TODO as "unpinned, host-only".
 # Gaze = Open Model Zoo FP16 IR (Apache-2.0), revision = OMZ snapshot 2023.0.
 # Hand = MediaPipe hand_landmarker bundle (Apache-2.0), revision = pinned '1';
-# fetch-models.sh unzips palm_detection_full.tflite + hand_landmark_full.tflite
+# fetch-models.sh unzips hand_detector.tflite + hand_landmarks_detector.tflite
 # and converts them to OpenVINO IR (models/hand/{palm,landmark}.{xml,bin}).
-face-detection-retail-0004.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/face-detection-retail-0004/FP16/face-detection-retail-0004.xml	TODO	Apache-2.0	2023.0
-face-detection-retail-0004.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/face-detection-retail-0004/FP16/face-detection-retail-0004.bin	TODO	Apache-2.0	2023.0
-head-pose-estimation-adas-0001.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/head-pose-estimation-adas-0001/FP16/head-pose-estimation-adas-0001.xml	TODO	Apache-2.0	2023.0
-head-pose-estimation-adas-0001.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/head-pose-estimation-adas-0001/FP16/head-pose-estimation-adas-0001.bin	TODO	Apache-2.0	2023.0
-facial-landmarks-35-adas-0002.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/facial-landmarks-35-adas-0002/FP16/facial-landmarks-35-adas-0002.xml	TODO	Apache-2.0	2023.0
-facial-landmarks-35-adas-0002.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/facial-landmarks-35-adas-0002/FP16/facial-landmarks-35-adas-0002.bin	TODO	Apache-2.0	2023.0
-gaze-estimation-adas-0002.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/gaze-estimation-adas-0002/FP16/gaze-estimation-adas-0002.xml	TODO	Apache-2.0	2023.0
-gaze-estimation-adas-0002.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/gaze-estimation-adas-0002/FP16/gaze-estimation-adas-0002.bin	TODO	Apache-2.0	2023.0
-hand_landmarker.task	https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task	TODO	Apache-2.0	1
+face-detection-retail-0004.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/face-detection-retail-0004/FP16/face-detection-retail-0004.xml	8675f0b00d91a4b5048d0e9caf492d7b48e80c9150db23429bb92c0428b97447	Apache-2.0	2023.0
+face-detection-retail-0004.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/face-detection-retail-0004/FP16/face-detection-retail-0004.bin	d0a8ca818c657b454ce6118715c49027b1b70d9d85a83a9a4a6606d773b02dfe	Apache-2.0	2023.0
+head-pose-estimation-adas-0001.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/head-pose-estimation-adas-0001/FP16/head-pose-estimation-adas-0001.xml	7a00509b02c15371c8156b848daf2825a061488b6f1b257ccbb648596c0a1ef3	Apache-2.0	2023.0
+head-pose-estimation-adas-0001.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/head-pose-estimation-adas-0001/FP16/head-pose-estimation-adas-0001.bin	035c41b04268c4541fc0d7fc4a131070bc2d424324ad8e1163f83953ee8bb0b1	Apache-2.0	2023.0
+facial-landmarks-35-adas-0002.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/facial-landmarks-35-adas-0002/FP16/facial-landmarks-35-adas-0002.xml	b6158ac7d58f45b948aa21bcf36271092cf0ae38040b29d269ea0df1f69684f6	Apache-2.0	2023.0
+facial-landmarks-35-adas-0002.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/facial-landmarks-35-adas-0002/FP16/facial-landmarks-35-adas-0002.bin	f75558439fa2a9a183174ed3f43eeaa8eb61024aac1aab907813cb40cc9823b9	Apache-2.0	2023.0
+gaze-estimation-adas-0002.xml	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/gaze-estimation-adas-0002/FP16/gaze-estimation-adas-0002.xml	bc94af22a5185271fbb4b66fd26b6eadead6a2c07f40e063fdeb7bcb22deb84d	Apache-2.0	2023.0
+gaze-estimation-adas-0002.bin	https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/gaze-estimation-adas-0002/FP16/gaze-estimation-adas-0002.bin	780f9b184f91967c0fb6a925d6f7b8841931d52e44cfab60e3cce3560072b2d6	Apache-2.0	2023.0
+hand_landmarker.task	https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task	fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1	Apache-2.0	1

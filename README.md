@@ -258,14 +258,18 @@ the container. As of 2026-06-15:
   (216/21.8 ms), head-pose-estimation-adas-0001 (160/56.8), facial-landmarks-35-adas-0002
   (547/56.8), gaze-estimation-adas-0002 (202/52.6). Inputs already static; cold first-infers.
   (face-detect `DetectionOutput` did **not** force a fallback.)
+- **Models fetched + pinned + hand IR converted** (2026-06-15): `scripts/fetch-models.sh`
+  downloaded the 8 OMZ gaze FP16 files + the MediaPipe `hand_landmarker.task`, pinned all 9
+  sha256 digests into `models/MANIFEST` (trust-on-first-use), and converted the bundled
+  tflites (`hand_detector`/`hand_landmarks_detector`) → `models/hand/{palm,landmark}.{xml,bin}`.
+  Converted IR inputs are already static (palm `input_1`=[1,192,192,3],
+  landmark `input_1`=[1,224,224,3]); NPU compile of the hand models is step 3.
 - NPU driver present (`/dev/accel/accel0`, `intel_vpu`); `/dev/video0..3` enumerated.
 
 **NOT yet hardware-validated (host-pending):**
-- **Hand (MediaPipe) models on NPU**: TFLite→IR conversion (`scripts/fetch-models.sh`) plus
-  per-op NPU compile (which ops force GPU/CPU fallback — e.g. `Interpolate`). The gaze chain
-  is already NPU-verified above; only the hand path remains.
-- **Model fetch + sha256 pinning** — `models/MANIFEST` ships `sha256=TODO`; first host
-  `scripts/fetch-models.sh` run downloads, pins, and re-verifies.
+- **Hand (MediaPipe) models on NPU**: per-op NPU compile after static reshape — which ops
+  force GPU/CPU fallback (e.g. `Interpolate`). TFLite→IR conversion is now **done** (above);
+  the gaze chain is already NPU-verified; only the hand NPU-compile step remains.
 - **Real-camera gaze/hand accuracy** and empirical tuning of dwell / flick thresholds.
 - **GNOME Shell extension runtime** end-to-end: install + Wayland relogin + live
   focus-window / switch-workspace / overlay; OSD/overlay-above-fullscreen specifics.

@@ -62,12 +62,17 @@ top to bottom.** When you finish and host-validate a step, check its box here.
   ```
   Verified: openvino 2026.2 + venv numpy 2.4.6 interop (`scripts/host-probe` NPU smoke
   `correct=true` under `.venv-host/bin/python`); installed `local-gaze probe` runs natively.
-- [ ] **2) Fetch + pin models** — downloads, pins `sha256=TODO` → real digests, re-verifies,
-  rejects executable payloads; converts MediaPipe TFLite → OpenVINO IR:
+- [x] **2) Fetch + pin models** — DONE 2026-06-15: downloaded 8 OMZ gaze FP16 files + the
+  MediaPipe `.task`, pinned 9 `sha256` digests, converted TFLite → OpenVINO IR
+  (`models/hand/{palm,landmark}.{xml,bin}`):
   ```sh
-  just fetch-models          # == sh scripts/fetch-models.sh
+  # `just` is container-only; run the script ON THE HOST, bridged from the container:
+  scripts/host-exec.sh sh -c 'cd ~/Projects/local-gaze && sh scripts/fetch-models.sh'
   git add models/MANIFEST    # commit the now-pinned digests (models/ itself is gitignored)
   ```
+  Note: the `.task` bundle members are `hand_detector.tflite` + `hand_landmarks_detector.tflite`
+  (not the standalone `*_full` names) — fixed in `scripts/fetch-models.sh` + build-spec §6.
+  Converted IR inputs already static: palm=[1,192,192,3], landmark=[1,224,224,3].
 - [ ] **3) Per-model NPU compile validation** — the **gaze chain is already NPU-verified**
   (2026-06-15, no fallback); the **hand (MediaPipe) path remains**: confirm each hand model
   compiles on NPU after static reshape and record which ops force GPU/CPU fallback (expected:

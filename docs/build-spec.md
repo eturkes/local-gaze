@@ -537,9 +537,11 @@ Gaze (OMZ, FP16, Apache-2.0), base
 `facial-landmarks-35-adas-0002`, `gaze-estimation-adas-0002` — each `.xml`+`.bin` under
 `<NAME>/FP16/`. Hand (MediaPipe, Apache-2.0): download pinned
 `.../hand_landmarker/float16/1/hand_landmarker.task` (zip) → extract
-`palm_detection_full.tflite` + `hand_landmark_full.tflite` →
+`hand_detector.tflite` + `hand_landmarks_detector.tflite` (the palm + 21-landmark
+"full" models, renamed inside the Tasks bundle) →
 `ov.convert_model(...)`+`ov.save_model(...)` → `models/hand/{palm,landmark}.{xml,bin}`,
-then `model.reshape(...)` to static at load. `models/MANIFEST` records
+then `model.reshape(...)` to static at load (verified 2026-06-15: inputs are already
+static — palm `input_1`=[1,192,192,3], landmark `input_1`=[1,224,224,3]). `models/MANIFEST` records
 name,url,sha256,license,revision; **all sha256 are TODO until first `[H]` host download**.
 
 Static shapes for reshape (NCHW unless noted):
