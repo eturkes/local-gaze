@@ -263,13 +263,17 @@ the container. As of 2026-06-15:
   sha256 digests into `models/MANIFEST` (trust-on-first-use), and converted the bundled
   tflites (`hand_detector`/`hand_landmarks_detector`) → `models/hand/{palm,landmark}.{xml,bin}`.
   Converted IR inputs are already static (palm `input_1`=[1,192,192,3],
-  landmark `input_1`=[1,224,224,3]); NPU compile of the hand models is step 3.
+  landmark `input_1`=[1,224,224,3]).
+- **All 6 models compile+infer on NPU via the production path** (2026-06-15): through
+  `perception/models.py:compile_with_fallback` (device_order `[NPU,GPU,CPU]`), **both MediaPipe
+  hand models** (`palm` 815 ops, `landmark` 548 ops) and the 4 OMZ gaze models compile+infer on
+  **NPU with no CPU/GPU fallback and zero NPU-unsupported ops** — the expected `Interpolate`
+  fallback did NOT occur. `CACHE_DIR` blob caching verified (`LOADED_FROM_CACHE=True` on
+  recompile; ~16–29 ms warm vs 235–709 ms cold). Fixed the backend hand reshape key
+  (`input`→`input_1`, the real `convert_model` input name) so the openvino backend loads them.
 - NPU driver present (`/dev/accel/accel0`, `intel_vpu`); `/dev/video0..3` enumerated.
 
 **NOT yet hardware-validated (host-pending):**
-- **Hand (MediaPipe) models on NPU**: per-op NPU compile after static reshape — which ops
-  force GPU/CPU fallback (e.g. `Interpolate`). TFLite→IR conversion is now **done** (above);
-  the gaze chain is already NPU-verified; only the hand NPU-compile step remains.
 - **Real-camera gaze/hand accuracy** and empirical tuning of dwell / flick thresholds.
 - **GNOME Shell extension runtime** end-to-end: install + Wayland relogin + live
   focus-window / switch-workspace / overlay; OSD/overlay-above-fullscreen specifics.

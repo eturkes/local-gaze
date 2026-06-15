@@ -73,12 +73,14 @@ top to bottom.** When you finish and host-validate a step, check its box here.
   Note: the `.task` bundle members are `hand_detector.tflite` + `hand_landmarks_detector.tflite`
   (not the standalone `*_full` names) — fixed in `scripts/fetch-models.sh` + build-spec §6.
   Converted IR inputs already static: palm=[1,192,192,3], landmark=[1,224,224,3].
-- [ ] **3) Per-model NPU compile validation** — the **gaze chain is already NPU-verified**
-  (2026-06-15, no fallback); the **hand (MediaPipe) path remains**: confirm each hand model
-  compiles on NPU after static reshape and record which ops force GPU/CPU fallback (expected:
-  `Interpolate`). Use `perception/models.py:compile_with_fallback` / `npu_probe`; verify
-  `CACHE_DIR` blob caching (`LOADED_FROM_CACHE`). Static shapes: `docs/build-spec.md §6`.
-  Validate via `[openvino] backend` + `local-gaze run` logs (the chosen device per model is logged).
+- [x] **3) Per-model NPU compile validation** — DONE 2026-06-15: via `compile_with_fallback`
+  (device_order `[NPU,GPU,CPU]`), **all 6 models compile+infer on NPU, no CPU/GPU fallback,
+  zero NPU-unsupported ops** — incl. both hand models (`palm` 815 ops / `landmark` 548 ops);
+  the expected `Interpolate` fallback did NOT occur. `CACHE_DIR` caching verified
+  (`LOADED_FROM_CACHE=True`, ~16–29 ms warm vs 235–709 ms cold). Fixed the backend hand reshape
+  key (`input`→`input_1`, the real `convert_model` input name) in
+  `perception/openvino_backend.py`. Re-validate any time via `local-gaze run` logs
+  (`openvino backend started; devices=...`).
 - [ ] **4) Install + enable the extension, then RELOG IN** (Wayland: Alt+F2 'r' does NOT reload):
   ```sh
   local-gaze install-extension                  # symlink + glib-compile-schemas + enable hint

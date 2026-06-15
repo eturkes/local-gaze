@@ -548,10 +548,12 @@ Static shapes for reshape (NCHW unless noted):
 - face-detect `data`=[1,3,300,300]; head-pose `data`=[1,3,60,60]; landmarks-35
   `data`=[1,3,60,60]; gaze `left_eye_image`/`right_eye_image`=[1,3,60,60],
   `head_pose_angles`=[1,3]; palm=[1,192,192,3] NHWC; hand-landmark=[1,224,224,3] NHWC.
-Per-model NPU compile: the **4 OMZ gaze models are host-verified to compile+infer on NPU**
-with no fallback (2026-06-15; face-detect SSD `DetectionOutput` did NOT block NPU — see
-environment-facts.md). The **MediaPipe hand** models remain `[H]` (TFLite→IR conversion +
-which ops force fallback, e.g. `Interpolate`).
+Per-model NPU compile (host-verified 2026-06-15 via `compile_with_fallback`): **all 6 models
+compile+infer on NPU with no CPU/GPU fallback and zero NPU-unsupported ops** — the 4 OMZ gaze
+models (face-detect SSD `DetectionOutput` did NOT block NPU) and both MediaPipe hand models
+(`palm` 815 ops, `landmark` 548 ops; the expected `Interpolate` fallback did NOT occur).
+`CACHE_DIR` blob caching verified (`LOADED_FROM_CACHE=True` on recompile; cold 235–709 ms →
+warm 16–29 ms). See environment-facts.md / README Verification status.
 
 ---
 

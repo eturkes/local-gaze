@@ -25,8 +25,11 @@ _GAZE_SHAPES = {
     "right_eye_image": [1, 3, 60, 60],
     "head_pose_angles": [1, 3],
 }
-_PALM_SHAPE = {"input": [1, 192, 192, 3]}
-_HAND_LM_SHAPE = {"input": [1, 224, 224, 3]}
+# Hand IR input is named "input_1" (from ov.convert_model of the tflites) and is
+# already static, so this reshape is an identity assertion. Host-verified 2026-06-15:
+# both compile on NPU with no op fallback (perception/models.py:compile_with_fallback).
+_PALM_SHAPE = {"input_1": [1, 192, 192, 3]}
+_HAND_LM_SHAPE = {"input_1": [1, 224, 224, 3]}
 
 # Post-process tuning constants (host-tunable). Concrete reasonable defaults.
 _FACE_CONF = 0.5
