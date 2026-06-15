@@ -53,10 +53,15 @@ Each runs on the host; bridge from the container with `scripts/host-exec.sh <cmd
 first to avoid the silent exit-127 gotcha). **The next roadmap item is the first unchecked box,
 top to bottom.** When you finish and host-validate a step, check its box here.
 
-- [ ] **1) Host venv** (inherits system OpenVINO 2026.2):
+- [x] **1) Host venv** (inherits system OpenVINO 2026.2) — DONE 2026-06-15:
   ```sh
-  just host-venv   # uv venv --system-site-packages .venv-host && uv pip install -e . --python .venv-host
+  # `just`/`uv` are container-only (the host has neither); run the recipe's raw
+  # commands ON THE HOST, bridged from the container:
+  scripts/host-exec.sh sh -c 'cd ~/Projects/local-gaze \
+    && python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install -e .'
   ```
+  Verified: openvino 2026.2 + venv numpy 2.4.6 interop (`scripts/host-probe` NPU smoke
+  `correct=true` under `.venv-host/bin/python`); installed `local-gaze probe` runs natively.
 - [ ] **2) Fetch + pin models** — downloads, pins `sha256=TODO` → real digests, re-verifies,
   rejects executable payloads; converts MediaPipe TFLite → OpenVINO IR:
   ```sh

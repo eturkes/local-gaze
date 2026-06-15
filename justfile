@@ -5,9 +5,11 @@ sync:
     uv sync
 
 # Host runtime venv inheriting system openvino 2026.2, then editable install.
-# The host has no uv, so use the SYSTEM python3 stdlib venv (verified to expose
-# system openvino under --system-site-packages); see docs/environment-facts.md.
-# Run this ON THE HOST (e.g. `distrobox-host-exec just host-venv`).
+# The host has neither uv nor just, so use the SYSTEM python3 stdlib venv (verified
+# to expose system openvino under --system-site-packages); see docs/environment-facts.md.
+# Run the two commands below ON THE HOST, bridged from the container, e.g.:
+#   scripts/host-exec.sh sh -c 'cd ~/Projects/local-gaze && \
+#     python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install -e .'
 host-venv:
     python3 -m venv --system-site-packages .venv-host
     .venv-host/bin/pip install -e .

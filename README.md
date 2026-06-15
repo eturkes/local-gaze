@@ -80,10 +80,10 @@ auto-detect the container and bridge for you.
 # Container (dev/test): deps only, NO openvino.
 just sync            # == uv sync
 
-# Host (runtime, run ON THE HOST): venv inheriting system OpenVINO 2026.2.
-# The host has no uv, so this uses the system python3 stdlib venv (verified to
-# expose system openvino 2026.2 under --system-site-packages).
-just host-venv       # == python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install -e .
+# Host (runtime, run ON THE HOST — it has neither uv nor just): stdlib venv
+# inheriting system OpenVINO 2026.2 (verified under --system-site-packages),
+# then editable install. Bridge from the container via scripts/host-exec.sh.
+python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install -e .
 ```
 
 `openvino`/`opencv-python` are an optional `[host]` extra, never a container dependency
@@ -244,6 +244,11 @@ the container. As of 2026-06-15:
 - `local-gaze demo` (synthetic + dry-run decision pipeline).
 
 **Host-probe-tested (verified on the host):**
+- **Host venv created + verified** (2026-06-15): `python3 -m venv --system-site-packages
+  .venv-host` + `pip install -e .` on the host (3.13.13) — inherits system OpenVINO 2026.2
+  while pinning **numpy 2.4.6** in-venv. The canonical NPU smoke runs `correct=true` under
+  `.venv-host/bin/python` (compile ≈78 ms / infer ≈12 ms), proving numpy-2 ABI interop
+  through OpenVINO; the installed `local-gaze probe` CLI reproduces it natively on the host.
 - OpenVINO 2026.2 imports; devices `['CPU','GPU','NPU']` (NPU = "Intel AI Boost").
 - **NPU smoke verified** (2026-06-15): tiny static-shape model compiled + inferred on `NPU`
   (~97 ms compile / ~14.6 ms infer); `CACHE_DIR`/`CACHE_MODE` present. This is the exact
