@@ -1,0 +1,41 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+.venv-host/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+
+# Models & runtime data (never commit weights; fetch via scripts/fetch-models.sh)
+# Track the MANIFEST (url/sha256/license) but ignore all downloaded model files.
+models/*
+!models/MANIFEST
+*.bin
+*.onnx
+*.xml.bin
+*.tflite
+*.blob
+
+# User-scoped runtime artifacts that may appear if run from repo
+*.log
+/state/
+/cache/
+
+# Node (extension lint tooling only)
+node_modules/
+package-lock.json
+
+# Serena (LSP); project.yml is tracked, the rest is local
+.serena/cache/
+.serena/project.local.yml
+.serena/memories/
+
+# Compiled gschemas (generated)
+extension/schemas/gschemas.compiled
+
+# Probe outputs
+host-probe-*.json

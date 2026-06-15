@@ -1,0 +1,54 @@
+[project]
+name = "local-gaze"
+version = "0.1.0"
+description = "Local NPU-first eye-tracking + hand-gesture control for GNOME Wayland."
+requires-python = ">=3.13"
+dependencies = [
+    "dbus-fast>=2.21",
+    "numpy>=2,<2.5",
+]
+
+[project.optional-dependencies]
+host = [
+    "openvino>=2026.2",
+    "opencv-python>=4.10",
+]
+
+[project.scripts]
+local-gaze = "local_gaze.cli:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "jeepney>=0.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/local_gaze"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["openvino.*", "openvino", "cv2", "dbus_fast.*", "jeepney.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

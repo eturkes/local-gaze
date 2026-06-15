@@ -1,0 +1,472 @@
+#!/usr/bin/env python3
+# host-probe — local-gaze environment probe (ADR-007).
+#
+# Stdlib-only except an OPTIONAL guarded `import openvino`. Emits machine-readable
+# JSON by default; `--human` prints a diagnostics summary. Exit code is always 0
+# (this is a report); the top-level "supported" boolean is the verdict.
+#
+# Honesty rule (ADR-007 / environment-facts.md): host-only capabilities (NPU
+# usable, real camera, GNOME Shell version, the extension's installed/enabled
+# state, host session-bus ownership) cannot be trusted from inside the Distrobox
+# container — visible /dev/accel, /dev/video, and /proc modules are the HOST's
+# and mislead. When running in-container, such fields are marked
+# status "unverified" rather than asserting a value. Run this ON THE HOST (via
+# `local-gaze probe`, which bridges through scripts/host-exec.sh) for ground truth.
+from __future__ import annotations
+
+import json
+import os
+import platform
+import re
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+EXTENSION_UUID = "local-gaze@eturkes.com"
+BUS_NAME = "com.eturkes.LocalGaze"
+SUPPORTED_SHELL_MAJOR = "50"
+
+UNVERIFIED = "unverified"  # host-only fact not assertable from the container
+OK = "ok"
+ABSENT = "absent"
+ERROR = "error"
+SKIPPED = "skipped"
+
+
+def _run(cmd: list[str], timeout: float = 5.0) -> tuple[int, str, str]:
+    """Best-effort subprocess; never raises. Returns (rc, stdout, stderr)."""
+    try:
+        proc = subprocess.run(  # noqa: S603 — fixed argv lists, no shell
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except FileNotFoundError:
+        return 127, "", "not found"
+    except (OSError, subprocess.SubprocessError) as exc:
+        return 1, "", str(exc)
+    return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+
+
+def _which(name: str) -> str | None:
+    return shutil.which(name)
+
+
+def detect_container() -> dict[str, Any]:
+    """Are we inside the Distrobox/toolbx container, and is host exec reachable?"""
+    container_env = Path("/run/.containerenv")
+    in_container = container_env.exists() or bool(os.environ.get("CONTAINER_ID"))
+    container_id = os.environ.get("CONTAINER_ID") or None
+    engine = None
+    if container_env.exists():
+        try:
+            text = container_env.read_text(encoding="utf-8", errors="replace")
+            m = re.search(r'engine="([^"]*)"', text)
+            if m:
+                engine = m.group(1)
+        except OSError:
+            pass
+    host_exec_tool = None
+    for tool in ("distrobox-host-exec", "host-spawn"):
+        if _which(tool):
+            host_exec_tool = tool
+            break
+    return {
+        "in_container": in_container,
+        "container_id": container_id,
+        "engine": engine,
+        "host_exec_tool": host_exec_tool,
+        "host_exec_available": host_exec_tool is not None,
+    }
+
+
+def detect_session() -> dict[str, Any]:
+    """XDG session type + desktop (env-only here; CLI session.py does the auth)."""
+    session_type = os.environ.get("XDG_SESSION_TYPE")
+    desktops_raw = os.environ.get("XDG_CURRENT_DESKTOP", "")
+    desktops = [d for d in desktops_raw.split(":") if d]
+    return {
+        "xdg_session_type": session_type,
+        "xdg_current_desktop": desktops_raw or None,
+        "is_wayland": session_type == "wayland",
+        "is_gnome": any(d.upper() == "GNOME" for d in desktops),
+        "wayland_display": os.environ.get("WAYLAND_DISPLAY"),
+    }
+
+
+def detect_gnome_shell(in_container: bool) -> dict[str, Any]:
+    """GNOME Shell version (best-effort). Host-only: unverified in container."""
+    if in_container and not _which("gnome-shell"):
+        return {"status": UNVERIFIED, "version": None, "major": None}
+    if not _which("gnome-shell"):
+        return {"status": ABSENT, "version": None, "major": None}
+    rc, out, err = _run(["gnome-shell", "--version"])
+    if rc != 0 or not out:
+        return {"status": ERROR, "version": None, "major": None, "detail": err or out}
+    m = re.search(r"(\d+)(?:\.\d+)*", out)
+    major = m.group(1) if m else None
+    return {
+        "status": OK,
+        "version": out,
+        "major": major,
+        "shell50": major == SUPPORTED_SHELL_MAJOR,
+    }
+
+
+def detect_extension(in_container: bool) -> dict[str, Any]:
+    """Is local-gaze@eturkes.com installed/enabled? Host-only -> unverified."""
+    if not _which("gnome-extensions"):
+        status = UNVERIFIED if in_container else ABSENT
+        return {"status": status, "installed": None, "enabled": None, "state": None}
+    info_rc, info_out, _ = _run(["gnome-extensions", "info", EXTENSION_UUID])
+    installed = info_rc == 0
+    state = None
+    if installed:
+        m = re.search(r"State:\s*(\S+)", info_out)
+        if m:
+            state = m.group(1)
+    enabled_rc, enabled_out, _ = _run(["gnome-extensions", "list", "--enabled"])
+    enabled = None
+    if enabled_rc == 0:
+        enabled = EXTENSION_UUID in enabled_out.splitlines()
+    return {
+        "status": OK,
+        "installed": installed,
+        "enabled": enabled,
+        "state": state,
+    }
+
+
+def detect_dbus(in_container: bool) -> dict[str, Any]:
+    """Session bus reachability + whether our bus name is owned.
+
+    In-container this inspects the CONTAINER's session bus, which is NOT the host
+    GNOME bus; mark the name-ownership host-relevant verdict accordingly.
+    """
+    addr = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
+    result: dict[str, Any] = {
+        "session_bus_address": addr,
+        "session_bus_set": bool(addr),
+        "bus_name": BUS_NAME,
+    }
+    if not _which("gdbus"):
+        result["list_names_status"] = ABSENT
+        result["reachable"] = bool(addr)
+        result["name_owned"] = UNVERIFIED if in_container else None
+        return result
+    rc, out, err = _run(
+        [
+            "gdbus",
+            "call",
+            "--session",
+            "--dest",
+            "org.freedesktop.DBus",
+            "--object-path",
+            "/org/freedesktop/DBus",
+            "--method",
+            "org.freedesktop.DBus.ListNames",
+        ]
+    )
+    reachable = rc == 0
+    result["reachable"] = reachable
+    result["list_names_status"] = OK if reachable else ERROR
+    if not reachable:
+        result["detail"] = err or out
+        result["name_owned"] = UNVERIFIED if in_container else None
+        return result
+    owned_here = (f'"{BUS_NAME}"' in out) or (f"'{BUS_NAME}'" in out)
+    if in_container:
+        # The host GNOME bus is the real target; the container bus tells us nothing
+        # authoritative about the extension's ownership there.
+        result["name_owned"] = UNVERIFIED
+        result["name_owned_on_local_bus"] = owned_here
+    else:
+        result["name_owned"] = owned_here
+    return result
+
+
+def detect_openvino() -> dict[str, Any]:
+    """Optional guarded openvino import + version + device enumeration."""
+    try:
+        import openvino as ov  # type: ignore[import-not-found]  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001 — any import failure => absent here
+        return {
+            "status": ABSENT,
+            "version": None,
+            "available_devices": None,
+            "device_full_names": None,
+            "detail": str(exc).splitlines()[0] if str(exc) else exc.__class__.__name__,
+        }
+    info: dict[str, Any] = {
+        "status": OK,
+        "version": getattr(ov, "__version__", None),
+        "available_devices": None,
+        "device_full_names": {},
+    }
+    try:
+        core = ov.Core()
+        devices = list(core.available_devices)
+        info["available_devices"] = devices
+        for dev in devices:
+            try:
+                info["device_full_names"][dev] = core.get_property(dev, "FULL_DEVICE_NAME")
+            except Exception as exc:  # noqa: BLE001
+                info["device_full_names"][dev] = f"<{exc.__class__.__name__}>"
+    except Exception as exc:  # noqa: BLE001
+        info["status"] = ERROR
+        info["detail"] = str(exc).splitlines()[0] if str(exc) else exc.__class__.__name__
+    return info
+
+
+def detect_npu_device(in_container: bool) -> dict[str, Any]:
+    """NPU driver visibility: /dev/accel* + intel_vpu in /proc/modules.
+
+    In-container these reflect the HOST kernel/devices and do NOT prove NPU
+    usability (ADR-007), so the usability verdict stays unverified; the raw
+    observations are still reported (clearly labelled host-relayed).
+    """
+    # Lunar Lake exposes the NPU at /dev/accel/accel0 (a dir + char node);
+    # some layouts place accelN flat under /dev. Match both, keep only nodes.
+    dev = Path("/dev")
+    accel_nodes = sorted(
+        str(p)
+        for p in (*dev.glob("accel/accel*"), *dev.glob("accel[0-9]*"))
+        if p.is_char_device()
+    )
+    intel_vpu = False
+    try:
+        mods = Path("/proc/modules").read_text(encoding="utf-8", errors="replace")
+        intel_vpu = any(line.split(" ", 1)[0] == "intel_vpu" for line in mods.splitlines())
+    except OSError:
+        intel_vpu = False
+    observed_present = bool(accel_nodes) or intel_vpu
+    return {
+        "accel_nodes": accel_nodes,
+        "intel_vpu_loaded": intel_vpu,
+        "driver_observed": observed_present,
+        # Usability requires a real compile+infer on "NPU"; never asserted from
+        # device nodes, and never trustworthy from inside the container.
+        "usable": UNVERIFIED if in_container else None,
+    }
+
+
+def npu_smoke(ov_status: str, in_container: bool) -> dict[str, Any]:
+    """Tiny static-shape compile+infer on NPU: parameter[1,8] -> matmul -> relu.
+
+    Skips gracefully if openvino is absent or the NPU is not present/usable.
+    """
+    if ov_status != OK:
+        return {"status": SKIPPED, "reason": "openvino-absent"}
+    if in_container:
+        # Even with a (hypothetical) in-container openvino, the NPU verdict is not
+        # host-authoritative; do not run a misleading smoke here.
+        return {"status": UNVERIFIED, "reason": "in-container"}
+    try:
+        import numpy as np  # noqa: PLC0415
+        import openvino as ov  # type: ignore[import-not-found]  # noqa: PLC0415
+        from openvino import opset13 as ops  # type: ignore[import-not-found]  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001
+        return {"status": ERROR, "reason": f"import:{exc.__class__.__name__}"}
+
+    try:
+        core = ov.Core()
+    except Exception as exc:  # noqa: BLE001
+        return {"status": ERROR, "reason": f"core:{exc.__class__.__name__}"}
+    if "NPU" not in core.available_devices:
+        return {"status": SKIPPED, "reason": "npu-not-available"}
+
+    try:
+        t0 = time.perf_counter()
+        param = ops.parameter([1, 8], dtype=np.float32, name="x")
+        weights = ops.constant(np.eye(8, dtype=np.float32))
+        matmul = ops.matmul(param, weights, transpose_a=False, transpose_b=False)
+        relu = ops.relu(matmul)
+        model = ov.Model(relu, [param], "npu_smoke")
+        build_ms = (time.perf_counter() - t0) * 1e3
+
+        t1 = time.perf_counter()
+        compiled = core.compile_model(model, "NPU", {"PERFORMANCE_HINT": "LATENCY"})
+        compile_ms = (time.perf_counter() - t1) * 1e3
+
+        x = np.arange(-4, 4, dtype=np.float32).reshape(1, 8)
+        t2 = time.perf_counter()
+        out = compiled(x)
+        infer_ms = (time.perf_counter() - t2) * 1e3
+
+        y = list(next(iter(out.values())).reshape(-1).tolist())
+        expected = [max(0.0, float(v)) for v in x.reshape(-1).tolist()]
+        correct = all(abs(a - b) < 1e-3 for a, b in zip(y, expected, strict=True))
+        return {
+            "status": OK if correct else "mismatch",
+            "device": "NPU",
+            "build_ms": round(build_ms, 2),
+            "compile_ms": round(compile_ms, 2),
+            "infer_ms": round(infer_ms, 2),
+            "correct": correct,
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "status": ERROR,
+            "reason": str(exc).splitlines()[0] if str(exc) else exc.__class__.__name__,
+        }
+
+
+def detect_camera(in_container: bool) -> dict[str, Any]:
+    """Camera node presence (/dev/video*). Real capture is host-only (unverified)."""
+    nodes = sorted(str(p) for p in Path("/dev").glob("video*"))
+    return {
+        "video_nodes": nodes,
+        "node_count": len(nodes),
+        # Node presence != a usable capture device; capture is host-validated.
+        "capture_usable": UNVERIFIED if in_container else None,
+    }
+
+
+def build_report() -> dict[str, Any]:
+    container = detect_container()
+    in_container = bool(container["in_container"])
+
+    session = detect_session()
+    gnome_shell = detect_gnome_shell(in_container)
+    extension = detect_extension(in_container)
+    dbus = detect_dbus(in_container)
+    openvino = detect_openvino()
+    npu_device = detect_npu_device(in_container)
+    smoke = npu_smoke(str(openvino["status"]), in_container)
+    camera = detect_camera(in_container)
+
+    # "supported" = can THIS environment run the full local-gaze stack now.
+    # Inside the container the answer is False (target is the host desktop);
+    # on the host it requires Wayland+GNOME, a usable NPU smoke, and the extension.
+    if in_container:
+        supported = False
+        supported_reason = "in-container (target runtime is the host desktop)"
+    else:
+        reasons: list[str] = []
+        if not session["is_wayland"]:
+            reasons.append("not-wayland")
+        if not session["is_gnome"]:
+            reasons.append("not-gnome")
+        if gnome_shell.get("status") == OK and gnome_shell.get("shell50") is False:
+            reasons.append("shell-not-50")
+        if smoke.get("status") not in (OK,):
+            reasons.append("npu-smoke-not-ok")
+        if extension.get("enabled") is not True:
+            reasons.append("extension-not-enabled")
+        supported = not reasons
+        supported_reason = "ok" if supported else ",".join(reasons)
+
+    return {
+        "schema_version": 1,
+        "tool": "host-probe",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "supported": supported,
+        "supported_reason": supported_reason,
+        "host": {
+            "hostname": platform.node(),
+            "machine": platform.machine(),
+            "python": platform.python_version(),
+        },
+        "container": container,
+        "session": session,
+        "gnome_shell": gnome_shell,
+        "extension": extension,
+        "dbus": dbus,
+        "openvino": openvino,
+        "npu_device": npu_device,
+        "npu_smoke": smoke,
+        "camera": camera,
+    }
+
+
+def _fmt(v: Any) -> str:
+    if v is None:
+        return "-"
+    if isinstance(v, bool):
+        return "yes" if v else "no"
+    if isinstance(v, list):
+        return ", ".join(str(x) for x in v) if v else "-"
+    return str(v)
+
+
+def render_human(r: dict[str, Any]) -> str:
+    lines: list[str] = []
+    lines.append("== local-gaze host-probe ==")
+    lines.append(
+        f"SUPPORTED: {_fmt(r['supported'])}  ({r['supported_reason']})"
+    )
+    c = r["container"]
+    lines.append(
+        f"container: in={_fmt(c['in_container'])} id={_fmt(c['container_id'])} "
+        f"engine={_fmt(c['engine'])} host-exec={_fmt(c['host_exec_tool'])}"
+    )
+    s = r["session"]
+    lines.append(
+        f"session: type={_fmt(s['xdg_session_type'])} desktop={_fmt(s['xdg_current_desktop'])} "
+        f"wayland={_fmt(s['is_wayland'])} gnome={_fmt(s['is_gnome'])}"
+    )
+    g = r["gnome_shell"]
+    lines.append(f"gnome-shell: status={_fmt(g['status'])} version={_fmt(g.get('version'))}")
+    e = r["extension"]
+    lines.append(
+        f"extension[{EXTENSION_UUID}]: status={_fmt(e['status'])} "
+        f"installed={_fmt(e['installed'])} enabled={_fmt(e['enabled'])} "
+        f"state={_fmt(e.get('state'))}"
+    )
+    d = r["dbus"]
+    lines.append(
+        f"dbus: reachable={_fmt(d.get('reachable'))} bus_set={_fmt(d['session_bus_set'])} "
+        f"{BUS_NAME}_owned={_fmt(d.get('name_owned'))}"
+    )
+    o = r["openvino"]
+    lines.append(
+        f"openvino: status={_fmt(o['status'])} version={_fmt(o.get('version'))} "
+        f"devices={_fmt(o.get('available_devices'))}"
+    )
+    if o.get("device_full_names"):
+        for dev, name in o["device_full_names"].items():
+            lines.append(f"    {dev} -> {name}")
+    nd = r["npu_device"]
+    lines.append(
+        f"npu-device: accel={_fmt(nd['accel_nodes'])} intel_vpu={_fmt(nd['intel_vpu_loaded'])} "
+        f"usable={_fmt(nd['usable'])}"
+    )
+    sm = r["npu_smoke"]
+    smoke_detail = ""
+    if sm.get("status") == OK:
+        smoke_detail = (
+            f" compile={_fmt(sm.get('compile_ms'))}ms infer={_fmt(sm.get('infer_ms'))}ms"
+        )
+    elif sm.get("reason"):
+        smoke_detail = f" ({sm['reason']})"
+    lines.append(f"npu-smoke: status={_fmt(sm['status'])}{smoke_detail}")
+    cam = r["camera"]
+    lines.append(
+        f"camera: nodes={_fmt(cam['video_nodes'])} usable={_fmt(cam['capture_usable'])}"
+    )
+    if r["container"]["in_container"]:
+        lines.append(
+            "note: in-container — host-only fields (NPU usable, camera, gnome-shell, "
+            "extension, bus ownership) are 'unverified'. Run on the host for ground truth."
+        )
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = sys.argv[1:] if argv is None else argv
+    human = "--human" in args
+    report = build_report()
+    if human:
+        print(render_human(report))
+    else:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    return 0  # always 0: this is a report; read "supported" for the verdict
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

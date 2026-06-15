@@ -1,0 +1,26 @@
+# local-gaze systemd USER unit (per ADR-003 / ADR-010).
+#
+# NOT auto-enabled: shipped default-disabled. Even when started, the daemon
+# refuses to act until the GNOME extension reports Enabled==true (the gsetting
+# 'active' kill switch). Enable on the host with: local-gaze enable
+# (or: systemctl --user enable --now local-gaze.service).
+#
+# ExecStart uses the absolute .venv-host interpreter (ADR-010): uv's
+# sys.executable points at the base interpreter, so -m must run via the venv's
+# own python to import the package + system-site openvino. %h is the host home.
+[Unit]
+Description=local-gaze NPU eye-tracking + hand-gesture daemon
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+# Clear PYTHONPATH so a host shell export (e.g. a standalone openvino_genai
+# bundle) cannot shadow the venv's system-site openvino. See environment-facts.md.
+Environment=PYTHONPATH=
+ExecStart=%h/Projects/local-gaze/.venv-host/bin/python -m local_gaze run
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="local-gaze">
+  <schema path="/org/gnome/shell/extensions/local-gaze/" id="org.gnome.shell.extensions.local-gaze">
+    <key type="b" name="active">
+      <default>false</default>
+      <summary>Acting enabled</summary>
+      <description>Single source of truth for the Enabled state. When false the extension performs no compositor actions; flipping it is the kill switch.</description>
+    </key>
+    <key type="b" name="require-token">
+      <default>true</default>
+      <summary>Require accident-token on D-Bus calls</summary>
+      <description>When true, every D-Bus method must present the token from the 0600 state file. When false, an empty token is accepted (defense-in-depth only; not access control).</description>
+    </key>
+  </schema>
+</schemalist>

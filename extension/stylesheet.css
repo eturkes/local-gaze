@@ -1,0 +1,13 @@
+/* local-gaze overlay chrome. Actors are positioned/sized in lib/overlay.js;
+   this file only styles the calibration dot. */
+
+.local-gaze-overlay {
+  background-color: transparent;
+}
+
+.local-gaze-dot {
+  background-color: rgba(255, 64, 64, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-shadow: 0 0 12px 4px rgba(255, 64, 64, 0.55);
+}

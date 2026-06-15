@@ -1,0 +1,11 @@
+{
+  "uuid": "local-gaze@eturkes.com",
+  "name": "Local Gaze",
+  "description": "Local NPU-first eye-tracking + hand-gesture desktop control. Exposes a narrow session-bus D-Bus interface the host daemon drives; default-disabled, kill-switch in Quick Settings.",
+  "url": "https://github.com/eturkes/local-gaze",
+  "shell-version": ["50"],
+  "session-modes": ["user"],
+  "settings-schema": "org.gnome.shell.extensions.local-gaze",
+  "version": 1,
+  "version-name": "0.1.0"
+}

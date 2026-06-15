@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./models/**)",
+      "Read(./.venv/**)",
+      "Read(./.venv-host/**)",
+      "Read(./node_modules/**)",
+      "Read(./**/__pycache__/**)",
+      "Read(./.serena/cache/**)",
+      "Read(./.pytest_cache/**)",
+      "Read(./**/*.bin)",
+      "Read(./**/*.blob)"
+    ]
+  }
+}
