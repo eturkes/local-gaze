@@ -18,17 +18,7 @@
       "Read(./uv.lock)",
       "Read(./extension/schemas/gschemas.compiled)",
       "Read(./**/*.bin)",
-      "Read(./**/*.blob)",
-      "Bash(cat:*)",
-      "Bash(less:*)",
-      "Bash(more:*)",
-      "Bash(bat:*)",
-      "Bash(nl:*)",
-      "Bash(od:*)",
-      "Bash(xxd:*)",
-      "Bash(hexdump:*)",
-      "Bash(strings:*)",
-      "Bash(rtk read:*)"
+      "Read(./**/*.blob)"
     ]
   }
 }
