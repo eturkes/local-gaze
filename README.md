@@ -37,13 +37,13 @@ camera ─▶ OpenVINO perception ─▶ interpret (smooth · dwell · flick · 
   **Flick** uses no extra model (hand-center velocity + hysteresis). See ADR-006.
 - The daemon is the only camera consumer; the extension is the only component that touches
   windows/workspaces (ADR-001). They speak the fixed interface `com.eturkes.LocalGaze` on
-  the session bus (ADR-002), method/property/signal-only — **no eval/exec surface**.
+  the session bus (ADR-002), method/property/signal-only, **no eval/exec surface**.
 
 ## Supported environment
 
 | Requirement | Value |
 |---|---|
-| Desktop | **GNOME Shell 50** (Wayland session only; X11 unsupported by design — ADR-001) |
+| Desktop | **GNOME Shell 50** (Wayland session only; X11 unsupported by design, ADR-001) |
 | GPU/NPU stack | **Intel NPU via OpenVINO** (NPU→GPU→CPU fallback); validated on Intel Core Ultra (Lunar Lake), NPU = "Intel AI Boost" |
 | Runtime | **OpenVINO 2026.2** + a webcam (`/dev/video*`) on the host |
 | Python | **≥3.13** |
@@ -80,7 +80,7 @@ auto-detect the container and bridge for you.
 # Container (dev/test): deps only, NO openvino.
 just sync            # == uv sync
 
-# Host (runtime, run ON THE HOST — it has neither uv nor just): stdlib venv
+# Host (runtime, run ON THE HOST, it has neither uv nor just): stdlib venv
 # inheriting system OpenVINO 2026.2 (verified under --system-site-packages),
 # then editable install. Bridge from the container via scripts/host-exec.sh.
 python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install -e .
@@ -91,8 +91,8 @@ python3 -m venv --system-site-packages .venv-host && .venv-host/bin/pip install 
 
 ## Container-safe checks (the canonical gate)
 
-Run the full container gate — lint, type-check, and the live D-Bus IPC round-trip against a
-fake extension on a private session bus — with:
+Run the full container gate (lint, type-check, and the live D-Bus IPC round-trip against a
+fake extension on a private session bus) with:
 
 ```sh
 just check
@@ -102,15 +102,15 @@ just check
 
 `dbus-run-session` gives `tests/test_ipc.py` an ephemeral session bus (real `dbus-fast`
 client vs `tests/fake_extension.py`); every other test ignores it. OpenVINO, the camera,
-and GNOME Shell are never touched by this command — their validation is host-only.
+and GNOME Shell are never touched by this command; their validation is host-only.
 IPC-only: `just ipc-test`.
 
 ## Host probe (NPU / cameras / extension state)
 
 `scripts/host-probe` enumerates OpenVINO devices, proves NPU usability by **compiling and
-inferring a tiny static model on `"NPU"`** (device-listing alone is not trusted — ADR-007),
+inferring a tiny static model on `"NPU"`** (device-listing alone is not trusted, ADR-007),
 and lists `/dev/video*`, GNOME Shell version, and the extension's installed/enabled state.
-It emits JSON (`--human` for a summary) and always exits 0 — read the top-level `supported`
+It emits JSON (`--human` for a summary) and always exits 0; read the top-level `supported`
 verdict.
 
 ```sh
@@ -177,7 +177,7 @@ token. The daemon (and `local-gaze calibrate`) **auto-provision** it on startup;
 ## Dry-run + synthetic demo
 
 `local-gaze demo` runs the **synthetic** backend through the real interpreter in **dry-run**
-for a few seconds and prints the decided actions — no camera, no D-Bus actions. This is the
+for a few seconds and prints the decided actions; no camera, no D-Bus actions. This is the
 container-safe way to exercise the full decision pipeline:
 
 ```sh
@@ -185,7 +185,7 @@ local-gaze demo        # or: just demo
 ```
 
 Dry-run more broadly (`[general] dry_run = true`) runs the full host pipeline but logs
-decisions instead of dispatching D-Bus actions — used for safe threshold tuning.
+decisions instead of dispatching D-Bus actions, used for safe threshold tuning.
 
 ## Calibration
 
@@ -205,7 +205,7 @@ local-gaze calibrate   # host; needs the extension enabled + a camera
 
 `~/.config/local-gaze/config.toml` (dir `0700`, file `0600`); missing keys fall back to
 typed defaults (`config.py:DEFAULTS`, mirroring `docs/build-spec.md §3`). Notable knobs:
-`general.backend` (`synthetic`|`openvino`), `general.enabled_default` (always `false` —
+`general.backend` (`synthetic`|`openvino`), `general.enabled_default` (always `false`;
 the daemon never auto-enables), `general.dry_run`, `ipc.require_token`, `gaze.dwell_ms` /
 `gaze.stability_px`, `flick.v_on`/`v_off`/`refractory_ms`, `limits.max_actions_per_sec`,
 `logging.log_gaze`. The gaze/flick thresholds are placeholders pending host tuning.
@@ -224,7 +224,7 @@ local-gaze install-extension   # symlink extension + compile schemas + enable hi
 
 ## Verification status
 
-Honest split per `docs/environment-facts.md` — host capabilities are **never** asserted from
+Honest split per `docs/environment-facts.md`: host capabilities are **never** asserted from
 the container. As of 2026-06-15:
 
 **Implemented (code complete):**
@@ -245,7 +245,7 @@ the container. As of 2026-06-15:
 
 **Host-probe-tested (verified on the host):**
 - **Host venv created + verified** (2026-06-15): `python3 -m venv --system-site-packages
-  .venv-host` + `pip install -e .` on the host (3.13.13) — inherits system OpenVINO 2026.2
+  .venv-host` + `pip install -e .` on the host (3.13.13), inherits system OpenVINO 2026.2
   while pinning **numpy 2.4.6** in-venv. The canonical NPU smoke runs `correct=true` under
   `.venv-host/bin/python` (compile ≈78 ms / infer ≈12 ms), proving numpy-2 ABI interop
   through OpenVINO; the installed `local-gaze probe` CLI reproduces it natively on the host.
@@ -254,7 +254,7 @@ the container. As of 2026-06-15:
   (~97 ms compile / ~14.6 ms infer); `CACHE_DIR`/`CACHE_MODE` present. This is the exact
   check `local-gaze probe` reproduces.
 - **Gaze chain on NPU verified** (2026-06-15): all four OMZ gaze models download (live URLs)
-  and compile + infer on `NPU` with **no** CPU/GPU fallback — face-detection-retail-0004
+  and compile + infer on `NPU` with **no** CPU/GPU fallback: face-detection-retail-0004
   (216/21.8 ms), head-pose-estimation-adas-0001 (160/56.8), facial-landmarks-35-adas-0002
   (547/56.8), gaze-estimation-adas-0002 (202/52.6). Inputs already static; cold first-infers.
   (face-detect `DetectionOutput` did **not** force a fallback.)
@@ -267,9 +267,9 @@ the container. As of 2026-06-15:
 - **All 6 models compile+infer on NPU via the production path** (2026-06-15): through
   `perception/models.py:compile_with_fallback` (device_order `[NPU,GPU,CPU]`), **both MediaPipe
   hand models** (`palm` 815 ops, `landmark` 548 ops) and the 4 OMZ gaze models compile+infer on
-  **NPU with no CPU/GPU fallback and zero NPU-unsupported ops** — the expected `Interpolate`
+  **NPU with no CPU/GPU fallback and zero NPU-unsupported ops**; the expected `Interpolate`
   fallback did NOT occur. `CACHE_DIR` blob caching verified (`LOADED_FROM_CACHE=True` on
-  recompile; ~16–29 ms warm vs 235–709 ms cold). Fixed the backend hand reshape key
+  recompile; ~16-29 ms warm vs 235-709 ms cold). Fixed the backend hand reshape key
   (`input`→`input_1`, the real `convert_model` input name) so the openvino backend loads them.
 - NPU driver present (`/dev/accel/accel0`, `intel_vpu`); `/dev/video0..3` enumerated.
 

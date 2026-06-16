@@ -14,8 +14,8 @@ root-level directory; constrain all work to it. You run inside a Distrobox **con
   where it says so.
 - `docs/adr.md` — 10 ADRs (rationale + rejected alternatives).
 - `docs/environment-facts.md` — probed env truth (container vs host split, the host-spawn `cd /`
-  gotcha, verified NPU smoke numbers). **Never claim NPU/camera/extension verification from
-  inside the container.**
+  gotcha, verified NPU smoke numbers). **Always treat NPU/camera/extension as unverified
+  inside the container; assert those host capabilities only from a host-side probe.**
 - `docs/security-privacy.md` — the security review (token is defense-in-depth, fail-closed table,
   file perms, model integrity).
 - Root `CLAUDE.md` — conventions: Python ≥3.13, `from __future__ import annotations` in every
