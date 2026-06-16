@@ -29,7 +29,7 @@ models/*
 node_modules/
 package-lock.json
 
-# Serena (LSP); project.yml is tracked, the rest is local
+# Serena (LSP); project.yml + .gitignore are tracked, the rest is local
 .serena/cache/
 .serena/project.local.yml
 .serena/memories/

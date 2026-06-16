@@ -7,6 +7,8 @@
       "Read(./node_modules/**)",
       "Read(./**/__pycache__/**)",
       "Read(./.serena/cache/**)",
+      "Read(./.serena/project.local.yml)",
+      "Read(./.serena/memories/**)",
       "Read(./.pytest_cache/**)",
       "Read(./**/*.bin)",
       "Read(./**/*.blob)"
