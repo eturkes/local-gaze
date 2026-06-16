@@ -10,8 +10,25 @@
       "Read(./.serena/project.local.yml)",
       "Read(./.serena/memories/**)",
       "Read(./.pytest_cache/**)",
+      "Read(./.ruff_cache/**)",
+      "Read(./.mypy_cache/**)",
+      "Read(./dist/**)",
+      "Read(./build/**)",
+      "Read(./**/*.egg-info/**)",
+      "Read(./uv.lock)",
+      "Read(./extension/schemas/gschemas.compiled)",
       "Read(./**/*.bin)",
-      "Read(./**/*.blob)"
+      "Read(./**/*.blob)",
+      "Bash(cat:*)",
+      "Bash(less:*)",
+      "Bash(more:*)",
+      "Bash(bat:*)",
+      "Bash(nl:*)",
+      "Bash(od:*)",
+      "Bash(xxd:*)",
+      "Bash(hexdump:*)",
+      "Bash(strings:*)",
+      "Bash(rtk read:*)"
     ]
   }
 }
