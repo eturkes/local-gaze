@@ -29,10 +29,6 @@ models/*
 node_modules/
 package-lock.json
 
-# Serena (LSP): cache/ + project.local.yml are handled by the nested .serena/.gitignore;
-# ignore memories/ here since the bespoke docs+roadmap memory is the sole store.
-.serena/memories/
-
 # Compiled gschemas (generated)
 extension/schemas/gschemas.compiled
 
