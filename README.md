@@ -278,7 +278,7 @@ the container. As of 2026-06-15:
 - **GNOME Shell extension runtime** end-to-end: install + Wayland relogin + live
   focus-window / switch-workspace / overlay; OSD/overlay-above-fullscreen specifics.
 
-Remaining host-only steps are tracked in `.agent/roadmap.md`.
+Remaining host-only work is tracked in `.agent/roadmap.md`.
 
 ## License
 

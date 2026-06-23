@@ -1,19 +1,24 @@
 # Roadmap — local-gaze
 
 Contract: `docs/build-spec.md`. Authoritative dated verification proof: README §"Verification status".
-This file tracks step status + next actions only — defer architecture to build-spec, proof to README.
+Milestone ledger + active-milestone detail only — architecture defers to build-spec, proof to README.
 
 Container baseline (re-verify each session with `just check`): GREEN — ruff + mypy + pytest pass on
-synthetic/mock backends. Steps below run on the openSUSE host outside the Distrobox container, where
-`just`/`uv` are absent and the real NPU/camera/GNOME-Shell live; bridge per `docs/environment-facts.md`.
+synthetic/mock backends. M2+ run on the openSUSE host OUTSIDE the Distrobox container, where `just`/`uv`
+are absent and the real NPU/camera/GNOME-Shell live; bridge per `docs/environment-facts.md`. That host
+surface is the standing gate on M2 and M3 — confirm it functionally before planning either.
 
-- [x] 1 Host runtime venv (`.venv-host`, system-site OpenVINO) — `2724263`
-- [x] 2 Fetch + pin models; hand `.task` → OpenVINO IR — `363c35d`
-- [x] 3 Per-model NPU compile + infer (all 6 models, production path, no CPU fallback) — `0280f24`
-- [ ] 4 Install + enable extension, RELOG IN, validate live D-Bus
-- [ ] 5 Real-camera tuning + calibrate + enable service  ← terminal step
+## Ledger
+- M1 container + inference baseline — DONE
+  - u1 host runtime venv (`.venv-host`, system-site OpenVINO) — `2724263`
+  - u2 fetch + pin models; hand `.task` → OpenVINO IR — `363c35d`
+  - u3 per-model NPU compile + infer (all 6 models, production path, no CPU fallback) — `0280f24`
+- M2 extension + live D-Bus — UNPLANNED, gated:host  ← active
+- M3 camera tuning + service — UNPLANNED, gated:host  (terminal milestone)
 
-## Step 4 — extension + live D-Bus  [host · GNOME 50 Wayland]
+## M2 — extension + live D-Bus  [host · GNOME 50 Wayland]  ← active
+Standing block: the host surface (real NPU/camera/GNOME-Shell, outside the container) is unavailable
+here. PLANNING confirms it functionally, then splits the scope below into units.
 ```sh
 local-gaze install-extension                 # symlink + glib-compile-schemas + enable hint
 gnome-extensions enable local-gaze@eturkes.com
@@ -25,8 +30,8 @@ Validate the REAL surface (not `tests/fake_extension.py`) on bus `com.eturkes.Lo
 only when `require-token=false`; otherwise run `local-gaze provision-token` first. Confirm the
 Quick Settings "Gaze Control" kill-switch + panel icon and fail-closed gates (Supported/Enabled).
 
-## Step 5 — camera tuning + service  [host]
-`local-gaze run` with `[general] dry_run=true` + a webcam; observe decisions; tune in
+## M3 — camera tuning + service  [host] (terminal)
+Scope: `local-gaze run` with `[general] dry_run=true` + a webcam; observe decisions; tune in
 `~/.config/local-gaze/config.toml`: `gaze.dwell_ms`/`stability_px`/`min_confidence` and
 `flick.v_on`/`v_off`/`refractory_ms`/`min_present_frames`. Then `local-gaze calibrate` (3×3 grid)
 and validate end-to-end with dry-run off:
@@ -34,4 +39,4 @@ and validate end-to-end with dry-run off:
 just svc-install
 local-gaze enable     # unit ships disabled; daemon no-ops until the toggle is ON
 ```
-Done ⇒ end-to-end live on real hardware; no further roadmap steps.
+Done ⇒ end-to-end live on real hardware; no further milestones.
