@@ -1,4 +1,4 @@
-Continue this project (fresh session). Non-empty task below ⇒ it is your sole task: do exactly it, leaving `.agent/roadmap.md` untouched unless it directs otherwise. Empty ⇒ run the MODE selected from the roadmap's active milestone (first one not DONE/REVIEWED).
+Continue this project (fresh session). Non-empty task below ⇒ it is your sole task: do exactly it, editing `.agent/roadmap.md` only if it directs you to. Empty ⇒ run the MODE selected from the roadmap's active milestone (first one not DONE/REVIEWED).
 
 Load `.agent/roadmap.md` (milestone ledger + active-milestone detail), then `.agent/memory.md` (lessons + decisions); CLAUDE.md (it imports `AGENTS.md`) is auto-injected. Read only what the step implicates. Navigate via LSP where available, else grep.
 
@@ -20,7 +20,7 @@ WORK-UNIT.
 - Do: (1) restate the unit + its acceptance in one line; (2) implement, reusing modules, matching surrounding style; (3) GATE — a gated unit needs its precondition met; confirm functionally (resolve through the pipeline/tooling), deny-listed inputs off-limits; unmet ⇒ stop and report, so every result traces to real inputs; (4) VERIFY the project's quality gates pass (lint, format, type-check, tests as the roadmap defines them); touched scripts exit clean; (5) record durable lessons/decisions in `.agent/memory.md`.
 - Close: record the unit's context-usage (`.agent/context.sh`, full `pct used/window`) into the roadmap; set the unit DONE — and the milestone IMPLEMENTED if no OPEN unit remains; commit `<scope> (M<m>.<u>): …`.
 
-MILESTONE-REVIEW — I launch this with 1M context (ideally the only 1M session): hold it all in-context, not split across subagents.
+MILESTONE-REVIEW — I launch this with 1M context (ideally the only 1M session): hold it all in-context, undivided.
 - Read every commit of the milestone, planning commits included.
 - Adversarially review the milestone's whole body — correctness, claim-vs-guarantee gaps, cross-unit consistency, conformance to scope/AGENTS.md/memory, token-efficiency, obsolescence — and fix what you find; revise the scope source on a better design (requirements changes reach me first).
 - Close: set the milestone REVIEWED, commit `<scope> (M<m> review): …`. The next session plans the next milestone.
