@@ -1,6 +1,6 @@
 # Memory — local-gaze
 
-Durable cross-session learnings, ONLY where they beat docs/code/git (project facts live in `docs/`;
+Durable cross-session learnings that clear the `AGENTS.md` memory-entry bar (project facts live in `docs/`;
 decisions in git). Keep lean; prune on drift.
 
 ## Tooling / environment
