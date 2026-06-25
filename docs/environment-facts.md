@@ -57,7 +57,8 @@ runtime; values here are a snapshot, not a runtime contract.
     facial-landmarks-35-adas-0002 (547/56.8), gaze-estimation-adas-0002 (202/52.6).
     Inputs are already static (no reshape needed). Times are cold first-infers;
     CACHE_DIR + warmup + async pipelining lower steady-state. Hand (MediaPipe)
-    models still need TFLite->IR conversion + per-op NPU validation.
+    models (palm/landmark) converted TFLite->IR + NPU-validated 2026-06-15
+    (`0280f24`): all 6 compile+infer on NPU, no CPU/GPU fallback.
 - NPU driver present: `/dev/accel/accel0` (render group), `intel_vpu` kernel
   module loaded. `level-zero` user stack present (genai links it).
 - Cameras: `/dev/video0..3` on host (UVC webcam, multiple nodes).

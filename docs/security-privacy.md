@@ -151,10 +151,10 @@ Defense-in-depth before any desktop action moves (ADR-009):
 - **sha256 pinning protects integrity, not behavior.** A correctly-signed model can still
   mispredict — hence confidence + dwell gating. Until the first host fetch, digests are
   unpinned (`TODO`).
-- **Host-pending validation `[H]`:** the Wayland guard, the **hand-model** NPU compile
-  (the gaze chain is already host-verified on NPU), real-camera capture/accuracy, and the
-  live extension runtime are validated on the host (probe + relogin + e2e), never asserted
-  from the container.
+- **Host-pending validation `[H]`:** the Wayland guard, real-camera capture/accuracy, and
+  the live extension runtime are validated on the host (probe + relogin + e2e), never
+  asserted from the container. (The full 6-model NPU compile chain — gaze + hand — is
+  already host-verified, 2026-06-15.)
 
 ## Control checklist
 
@@ -174,5 +174,5 @@ Defense-in-depth before any desktop action moves (ADR-009):
 - [x] Models: TLS + sha256-pinned MANIFEST + recorded license/revision; executable payloads
       rejected; nothing executed.
 - [x] Extension `disable()` removes all timers/signals + unexports the D-Bus object.
-- [ ] `[H]` Wayland guard, hand-model NPU compile (gaze chain done), real-camera, live extension e2e validated
-      on the host.
+- [ ] `[H]` Wayland guard, real-camera, live extension e2e validated on the host
+      (6-model NPU compile chain — gaze + hand — host-verified 2026-06-15).
