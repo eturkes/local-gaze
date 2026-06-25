@@ -1,4 +1,4 @@
-# Environment Facts (probed 2026-06-15)
+# Environment Facts (probed 2026-06-15; dev-local container-shim addendum 2026-06-25)
 
 Authoritative, machine-probed facts about THIS dev/runtime environment. Treat as
 ground truth for design. Re-probe with `scripts/host-probe` before trusting at

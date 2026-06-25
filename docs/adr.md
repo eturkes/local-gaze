@@ -207,6 +207,12 @@ is explicitly forbidden.
 (b) Mocking the D-Bus layer itself — wouldn't catch dbus-fast snake_case/signature mistakes.
 (c) Requiring openvino in CI — breaks container env (env-fact).
 
+**Update (2026-06-25).** A machine-specific developer accel shim now runs real OpenVINO
+(CPU/GPU/NPU) inside the dev container (`CLAUDE.local.md`). This changes NEITHER this split
+NOR ADR-007: portable CI stays mock-only (no openvino in `just check`), and the shim's tiny
+in-container self-tests are a dev convenience, not a host/production proof — the host probe
+remains the only trusted NPU validation.
+
 ---
 
 ## ADR-009 — Calibration + action gating: affine gaze map, smoothing, dwell, hysteresis, debounce, rate-limit

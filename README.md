@@ -50,7 +50,10 @@ camera ─▶ OpenVINO perception ─▶ interpret (smooth · dwell · flick · 
 
 The development/test environment is a Distrobox **container** (no OpenVINO, no GNOME Shell,
 no real camera); the **runtime target is the host desktop**. This split is load-bearing
-(see [HOST vs CONTAINER](#host-vs-container)).
+(see [HOST vs CONTAINER](#host-vs-container)). (One dev box can also run real OpenVINO
+in-container via a machine-specific shim, a dated exception under
+[Verification status](#verification-status); the portable suite still mocks it, so the split
+holds.)
 
 ## HOST vs CONTAINER
 
@@ -225,7 +228,7 @@ local-gaze install-extension   # symlink extension + compile schemas + enable hi
 ## Verification status
 
 Honest split per `docs/environment-facts.md`: host capabilities are **never** asserted from
-the container's portable (mock) backends. As of 2026-06-15:
+the container's portable (mock) backends. As of 2026-06-25:
 
 **Implemented (code complete):**
 - Python package (`src/local_gaze/`): config, paths, session detection, logging, IPC
