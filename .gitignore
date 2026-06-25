@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .venv/
 .venv-host/
+.venv-npu/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
@@ -34,3 +35,6 @@ extension/schemas/gschemas.compiled
 
 # Probe outputs
 host-probe-*.json
+
+# Private, machine-specific agent config (Claude Code; not portable)
+CLAUDE.local.md

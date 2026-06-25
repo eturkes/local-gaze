@@ -75,7 +75,9 @@ runtime; values here are a snapshot, not a runtime contract.
   session bus for IPC tests (fake extension service vs. real daemon client).
   Container's own bus at `unix:path=/run/user/1000/bus`.
 - ABSENT in container (by design / expected):
-  - `openvino` (import fails) -> backend must lazy-import; tests mock it.
+  - `openvino` (bare import fails: no numpy, no GPU/NPU userspace) -> backend
+    must lazy-import; the portable suite mocks it. (Dev-local exception: an accel
+    shim makes it real in-container -> see the testing-split † note + `CLAUDE.local.md`.)
   - `gjs`, `gnome-extensions`, GNOME Shell -> extension is HOST-validated only;
     container does static checks (eslint, gschema compile via
     `glib-compile-schemas` which IS present, JSON validation).
@@ -93,10 +95,16 @@ runtime; values here are a snapshot, not a runtime contract.
 | Python logic / interpreter / unit  | YES       | YES  |
 | D-Bus client vs FAKE service       | YES (dbus-run-session) | YES |
 | gschema compile, JSON/JS lint      | YES       | YES  |
-| OpenVINO import / device select    | NO (mock) | YES  |
-| NPU compile/inference smoke        | NO        | YES (host-probe) |
+| OpenVINO import / device select    | mock†     | YES  |
+| NPU compile/inference smoke        | no†       | YES (host-probe) |
 | Real camera capture                | NO (synthetic) | YES |
 | GNOME Shell extension runtime      | NO        | YES  |
 | End-to-end gaze/gesture -> desktop | NO        | YES  |
 
-**Never claim NPU/camera/extension verification from inside the container.**
+**The portable suite mocks OpenVINO; never let a mock backend pass as real
+verification, and never claim camera/extension verification from inside the
+container.**
+† Dev-local exception (this box, machine-specific, not portable): a developer accel
+shim makes real CPU/GPU/NPU OpenVINO work in-container -> see `CLAUDE.local.md`;
+such in-container NPU runs are legitimate but get dated as dev-local in the proof
+(verified 2026-06-25, OpenVINO 2026.2.1, all three devices compile+infer OK).

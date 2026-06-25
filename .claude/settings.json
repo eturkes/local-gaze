@@ -4,6 +4,7 @@
       "Read(./models/**/*.xml)",
       "Read(./.venv/**)",
       "Read(./.venv-host/**)",
+      "Read(./.venv-npu/**)",
       "Read(./node_modules/**)",
       "Read(./**/__pycache__/**)",
       "Read(./.serena/cache/**)",

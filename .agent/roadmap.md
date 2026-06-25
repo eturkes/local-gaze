@@ -5,8 +5,9 @@ Milestone ledger + active-milestone detail only — architecture defers to build
 
 Container baseline (re-verify each session with `just check`): GREEN — ruff + mypy + pytest pass on
 synthetic/mock backends. M2+ run on the openSUSE host OUTSIDE the Distrobox container, where `just`/`uv`
-are absent and the real NPU/camera/GNOME-Shell live; bridge per `docs/environment-facts.md`. That host
-surface is the standing gate on M2 and M3 — confirm it functionally before planning either.
+are absent and the real camera + GNOME-Shell live (the NPU now ALSO runs in-container via the dev-local
+shim — `CLAUDE.local.md`); bridge per `docs/environment-facts.md`. That host surface (camera + Shell) is
+the standing gate on M2 and M3 — confirm it functionally before planning either.
 
 ## Ledger
 - M1 container + inference baseline — DONE
@@ -17,8 +18,9 @@ surface is the standing gate on M2 and M3 — confirm it functionally before pla
 - M3 camera tuning + service — UNPLANNED, gated:host  (terminal milestone)
 
 ## M2 — extension + live D-Bus  [host · GNOME 50 Wayland]  ← active
-Standing block: the host surface (real NPU/camera/GNOME-Shell, outside the container) is unavailable
-here. PLANNING confirms it functionally, then splits the scope below into units.
+Standing block: the host surface (real camera + GNOME Shell/Wayland session, outside the container) is
+unavailable here; the NPU is no longer part of this gate — it runs in-container via the dev-local shim
+(`CLAUDE.local.md`). PLANNING confirms the host surface functionally, then splits the scope below into units.
 ```sh
 local-gaze install-extension                 # symlink + glib-compile-schemas + enable hint
 gnome-extensions enable local-gaze@eturkes.com

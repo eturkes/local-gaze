@@ -225,7 +225,7 @@ local-gaze install-extension   # symlink extension + compile schemas + enable hi
 ## Verification status
 
 Honest split per `docs/environment-facts.md`: host capabilities are **never** asserted from
-the container. As of 2026-06-15:
+the container's portable (mock) backends. As of 2026-06-15:
 
 **Implemented (code complete):**
 - Python package (`src/local_gaze/`): config, paths, session detection, logging, IPC
@@ -242,6 +242,15 @@ the container. As of 2026-06-15:
 - **Live D-Bus IPC round-trip**: the real `ExtensionClient` against a real `dbus-fast` fake
   extension under `dbus-run-session` (`test_ipc.py`).
 - `local-gaze demo` (synthetic + dry-run decision pipeline).
+
+**Dev-local in-container (machine-specific, not portable; see `CLAUDE.local.md`):**
+- On the primary dev box the container can ALSO run real OpenVINO on CPU/GPU/NPU
+  (not just the host), via a developer-local accel shim + a py3.10-3.13 venv with
+  numpy. Verified 2026-06-25: OpenVINO 2026.2.1, `available_devices ['CPU','GPU',
+  'NPU']` (NPU = "Intel AI Boost"), tiny compile+infer `correct=True` on all three.
+  A dev convenience for fast in-container NPU iteration; the portable suite still
+  mocks OpenVINO so CI runs on any container without the shim. (Only the tiny
+  self-test was run in-container; the 6-model production proof below is the host's.)
 
 **Host-probe-tested (verified on the host):**
 - **Host venv created + verified** (2026-06-15): `python3 -m venv --system-site-packages
