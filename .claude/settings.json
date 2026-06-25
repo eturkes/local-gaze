@@ -1,7 +1,7 @@
 {
   "permissions": {
     "deny": [
-      "Read(./models/*/**)",
+      "Read(./models/**/*.xml)",
       "Read(./.venv/**)",
       "Read(./.venv-host/**)",
       "Read(./node_modules/**)",
@@ -18,7 +18,8 @@
       "Read(./uv.lock)",
       "Read(./extension/schemas/gschemas.compiled)",
       "Read(./**/*.bin)",
-      "Read(./**/*.blob)"
+      "Read(./**/*.blob)",
+      "Read(./**/*.task)"
     ]
   }
 }
