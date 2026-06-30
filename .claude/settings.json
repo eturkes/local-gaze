@@ -10,6 +10,7 @@
       "Read(./.serena/cache/**)",
       "Read(./.serena/project.local.yml)",
       "Read(./.serena/memories/**)",
+      "Read(./.tokensave/**)",
       "Read(./.pytest_cache/**)",
       "Read(./.ruff_cache/**)",
       "Read(./.mypy_cache/**)",

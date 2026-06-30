@@ -1,24 +1,24 @@
-Continue this project (fresh session). Non-empty task below ⇒ your sole task: do exactly it, editing `.agent/roadmap.md` only if it directs you to. Empty ⇒ run the MODE from the roadmap's active milestone (first not DONE/REVIEWED).
+Continue this project (fresh session). Non-empty task below ⇒ your sole task: do exactly it, editing `.agent/roadmap.md` only if it directs you to. Empty ⇒ run the MODE from the roadmap's active milestone (first yet to reach DONE/REVIEWED).
 
-Load `.agent/roadmap.md` (milestone ledger + active-milestone detail), then `.agent/memory.md` (lessons + decisions); CLAUDE.md (imports `AGENTS.md`) is auto-injected. Read only what the step implicates. Navigate via LSP where available, else grep.
+Load `.agent/roadmap.md` (milestone ledger + active-milestone detail), then `.agent/memory.md` (lessons + decisions); CLAUDE.md (imports `AGENTS.md`) is auto-injected. Read only what the step implicates. Navigate via tokensave or LSP where available, else grep.
 
 MODE ← active-milestone status (each mode advances it, then closes on a scoped commit; convention below):
-- UNPLANNED (incl. a not-yet-split future milestone) → PLANNING
+- UNPLANNED (incl. a still-unsplit future milestone) → PLANNING
 - IN-PROGRESS (has an OPEN unit) → WORK-UNIT (lowest OPEN unit)
 - IMPLEMENTED (units all DONE, unreviewed) → MILESTONE-REVIEW
 
-After each mode's commit I compact and run `/codex-review`; you fix accepted findings in a follow-up commit. MILESTONE-REVIEW is the exception — its `/codex-review` runs without compacting. Record context-usage in WORK-UNIT only.
+After each mode's commit I compact and run `/codex-review`; you fix accepted findings in a follow-up commit. MILESTONE-REVIEW is the exception — its `/codex-review` runs on the uncompacted session. Record context-usage in WORK-UNIT only.
 
-PLANNING — split the scope into milestones if not yet split, then plan only the next milestone.
+PLANNING — split the scope into milestones if still unsplit, then plan only the next milestone.
 - Read the prior milestone's commit range, especially its recorded context-usage (it right-sizes units); for the first planned milestone, the scope-seed commit(s) the roadmap names.
 - Gate first: a milestone gated on an unmet precondition stops here — record the standing block. Confirm the precondition functionally (resolve it through the project's pipeline/tooling); deny-listed inputs stay off-limits.
-- Plan (once unblocked): always a dynamic workflow (standing opt-in) + web search; finders read-only (`Explore`), then `git status`-reconcile. Break the milestone into units each completable within a 200K window; sequence gate-independent prep first; flag any still-gated unit BLOCKED (planned, not yet runnable).
+- Plan (once unblocked): always a dynamic workflow (standing opt-in) + web search; finders read-only (`Explore`), then `git status`-reconcile. Break the milestone into units each completable within a 200K window; sequence gate-independent prep first; flag any still-gated unit BLOCKED (planned, awaiting its gate).
 - Close: set the milestone IN-PROGRESS (units enumerated), commit `roadmap (M<m> plan): …`.
 
 WORK-UNIT.
 - Read the last completed unit's commit(s) — or the planning commit(s) if this is the milestone's first unit.
 - Do: (1) restate the unit + its acceptance in one line; (2) implement, reusing modules, matching surrounding style; (3) GATE — a gated unit needs its precondition met; confirm functionally (resolve through the pipeline/tooling), deny-listed inputs off-limits; unmet ⇒ stop and report, so every result traces to real inputs; (4) VERIFY the project's quality gates pass (lint, format, type-check, tests as the roadmap defines them); touched scripts exit clean; (5) record durable lessons/decisions in `.agent/memory.md`.
-- Close: record the unit's context-usage (`.agent/context.sh`, full `pct used/window`) into the roadmap; set the unit DONE — and the milestone IMPLEMENTED if no OPEN unit remains; commit `<scope> (M<m>.<u>): …`.
+- Close: record the unit's context-usage (`.agent/context.sh`, full `pct used/window`) into the roadmap; set the unit DONE — and the milestone IMPLEMENTED once every unit is DONE; commit `<scope> (M<m>.<u>): …`.
 
 MILESTONE-REVIEW — I launch this with 1M context (ideally the only 1M session): hold it all in-context, undivided.
 - Read every commit of the milestone, planning commits included.

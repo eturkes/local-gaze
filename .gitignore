@@ -36,5 +36,9 @@ extension/schemas/gschemas.compiled
 # Probe outputs
 host-probe-*.json
 
+# Agent code-graph state (Headroom tokensave; regenerable via `tokensave init`)
+.tokensave/
+
 # Private, machine-specific agent config (Claude Code; not portable)
 CLAUDE.local.md
+.claude/settings.local.json
