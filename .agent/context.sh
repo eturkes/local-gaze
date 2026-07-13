@@ -1,5 +1,5 @@
 #!/bin/sh
-# Context gauge → "N% used/window" (tokens) from the live Claude Code transcript = headroom. Window = 1M (forced on at all times).
+# Context gauge → "N% used/window" (tokens) from the live Claude Code transcript = headroom. Window = 1M.
 f=$(ls "$HOME"/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl 2>/dev/null)
 [ -n "$f" ] || f=$(ls -t "$HOME"/.claude/projects/*/*.jsonl 2>/dev/null | head -1)
 u=$(jq -n 'last(inputs|select(.type=="assistant" and .isSidechain!=true and .message.model!="<synthetic>" and (.message.usage|type)=="object")|.message.usage|.input_tokens+.cache_creation_input_tokens+.cache_read_input_tokens)//empty' "$f" 2>/dev/null)
