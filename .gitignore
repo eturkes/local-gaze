@@ -39,6 +39,9 @@ host-probe-*.json
 # Agent code-graph state (Headroom tokensave; regenerable via `tokensave init`)
 .tokensave/
 
+# Headroom live-wrap marker (ephemeral session state: pid/port/env key; removed on exit)
+.claude/.headroom_wrap_marker.json
+
 # Private, machine-specific agent config (Claude Code; not portable)
 CLAUDE.local.md
 .claude/settings.local.json
